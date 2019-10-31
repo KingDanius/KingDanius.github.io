@@ -45,7 +45,6 @@
 <body> 
 	<div id="fb-root"></div>
 	
-	<!--
 	<script>
 	// Issue a warning if trying to preview an exported project on disk.
 	(function(){
@@ -56,7 +55,6 @@
 		}
 	})();
 	</script>
-	-->
 	
 	<!-- The canvas must be inside a div called c2canvasdiv -->
 	<div id="c2canvasdiv">
@@ -98,7 +96,18 @@
 			cr_createRuntime("c2canvas");
 		});
 		
+		// Pause and resume on page becoming visible/invisible
+		function onVisibilityChanged() {
+			if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
+				cr_setSuspended(true);
+			else
+				cr_setSuspended(false);
+		};
 		
+		document.addEventListener("visibilitychange", onVisibilityChanged, false);
+		document.addEventListener("mozvisibilitychange", onVisibilityChanged, false);
+		document.addEventListener("webkitvisibilitychange", onVisibilityChanged, false);
+		document.addEventListener("msvisibilitychange", onVisibilityChanged, false);
 		
 		function OnRegisterSWError(e)
 		{
