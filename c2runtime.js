@@ -20147,158 +20147,6 @@ cr.plugins_.Browser = function(runtime)
 }());
 ;
 ;
-cr.plugins_.C2WebSocket = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var pluginProto = cr.plugins_.C2WebSocket.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	var isSupported = (typeof WebSocket !== "undefined");
-	var last_url = "";
-	instanceProto.onCreate = function()
-	{
-		this.ws = null;
-		this.messageText = "";
-		this.errorMsg = "";
-		this.closeCode = 0;
-		this.closeReason = "";
-	};
-	instanceProto.saveToJSON = function ()
-	{
-		return { "messageText": this.messageText, "errorMsg": this.errorMsg };
-	};
-	instanceProto.loadFromJSON = function (o)
-	{
-		this.messageText = o["messageText"];
-		this.errorMsg = o["errorMsg"];
-	};
-	function Cnds() {};
-	Cnds.prototype.OnOpened = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnClosed = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnError = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.OnMessage = function ()
-	{
-		return true;
-	};
-	Cnds.prototype.IsOpen = function ()
-	{
-		return this.ws && this.ws.readyState === 1 /* OPEN */;
-	};
-	Cnds.prototype.IsConnecting = function ()
-	{
-		return this.ws && this.ws.readyState === 0 /* CONNECTING */;
-	};
-	Cnds.prototype.IsSupported = function ()
-	{
-		return isSupported;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.Connect = function (url_, requireProtocol_)
-	{
-		if (!isSupported)
-			return;
-		if (this.ws)
-			this.ws.close();
-		var self = this;
-		last_url = url_;
-		try {
-			if (requireProtocol_ === "")
-				this.ws = new WebSocket(url_);
-			else
-				this.ws = new WebSocket(url_, requireProtocol_);
-		}
-		catch (e) {
-			this.ws = null;
-			self.errorMsg = "Unable to create a WebSocket with the given address and protocol.";
-			self.runtime.trigger(cr.plugins_.C2WebSocket.prototype.cnds.OnError, self);
-			return;
-		}
-		this.ws.binaryType = "arraybuffer";
-		this.ws.onopen = function() {
-			if (requireProtocol_.length && self.ws.protocol.indexOf(requireProtocol_) === -1)
-			{
-				self.errorMsg = "WebSocket required protocol '" + requireProtocol_ + "' not supported by server";
-				self.runtime.trigger(cr.plugins_.C2WebSocket.prototype.cnds.OnError, self);
-			}
-			else
-				self.runtime.trigger(cr.plugins_.C2WebSocket.prototype.cnds.OnOpened, self);
-		};
-		this.ws.onerror = function (err_) {
-			if (cr.is_string(err_))
-				self.errorMsg = err_;
-			else
-				self.errorMsg = (err_ && cr.is_string(err_.data) ? err_.data : "");
-			self.runtime.trigger(cr.plugins_.C2WebSocket.prototype.cnds.OnError, self);
-		};
-		this.ws.onclose = function (e) {
-			self.closeCode = e["code"] || 0;
-			self.closeReason = e["reason"] || "";
-			self.runtime.trigger(cr.plugins_.C2WebSocket.prototype.cnds.OnClosed, self);
-		};
-		this.ws.onmessage = function (msg_) {
-			self.messageText = msg_.data || "";
-			self.runtime.trigger(cr.plugins_.C2WebSocket.prototype.cnds.OnMessage, self);
-		};
-	};
-	Acts.prototype.Close = function ()
-	{
-		if (this.ws)
-			this.ws.close();
-	};
-	Acts.prototype.Send = function (msg_)
-	{
-		if (!this.ws || this.ws.readyState !== 1 /* OPEN */)
-			return;
-		this.ws.send(msg_);
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
-	Exps.prototype.MessageText = function (ret)
-	{
-		ret.set_string(this.messageText);
-	};
-	Exps.prototype.ErrorMsg = function (ret)
-	{
-		ret.set_string(cr.is_string(this.errorMsg) ? this.errorMsg : "");
-	};
-	Exps.prototype.CloseCode = function (ret)
-	{
-		ret.set_int(this.closeCode);
-	};
-	Exps.prototype.CloseReason = function (ret)
-	{
-		ret.set_string(this.closeReason);
-	};
-	pluginProto.exps = new Exps();
-}());
-;
-;
 cr.plugins_.Dictionary = function(runtime)
 {
 	this.runtime = runtime;
@@ -27073,231 +26921,6 @@ cr.plugins_.Touch = function(runtime)
 		var touch = this.touches[index];
 		ret.set_float(touch.pressure);
 	};
-	pluginProto.exps = new Exps();
-}());
-/* Copyright (c) 2014 Intel Corporation. All rights reserved.
-* Use of this source code is governed by a MIT-style license that can be
-* found in the LICENSE file.
-*/
-;
-;
-cr.plugins_.admob = function(runtime)
-{
-	this.runtime = runtime;
-};
-(function ()
-{
-	var pluginProto = cr.plugins_.admob.prototype;
-	pluginProto.Type = function(plugin)
-	{
-		this.plugin = plugin;
-		this.runtime = plugin.runtime;
-	};
-	var typeProto = pluginProto.Type.prototype;
-	typeProto.onCreate = function()
-	{
-	};
-	pluginProto.Instance = function(type)
-	{
-		this.type = type;
-		this.runtime = type.runtime;
-	};
-	var instanceProto = pluginProto.Instance.prototype;
-	var isSupported = false;
-	instanceProto.onCreate = function()
-	{
-		if (!window["admob"])
-		{
-			cr.logexport("[Construct 2] com.cranberrygame.phonegap.plugin.ad.admob plugin is required to show Admob ads with Cordova; other platforms are not supported");
-			return;
-		}
-		isSupported = true;
-		this.AdMob = window["admob"];
-		if (this.AdMob["setLicenseKey"])
-			this.AdMob["setLicenseKey"]("support@scirra.com", "2ba99d4ff8c219cf7331c88fb3344f80");
-		var overlap = (this.properties[0] !== 0);
-		var isTesting = (this.properties[1] !== 0);
-		this.androidBannerId = this.properties[2];
-		this.androidInterstitialId = this.properties[3];
-		this.iosBannerId = this.properties[4];
-		this.iosInterstitialId = this.properties[5];
-		this.wp8BannerId = this.properties[6];
-		this.wp8InterstitialId = this.properties[7];
-		if (this.runtime.isAndroid)
-		{
-			this.bannerId = this.androidBannerId;
-			this.interstitialId = this.androidInterstitialId;
-		}
-		else if (this.runtime.isiOS)
-		{
-			this.bannerId = this.iosBannerId;
-			this.interstitialId = this.iosInterstitialId;
-		}
-		else if (this.runtime.isWindowsPhone8 || this.runtime.isWindowsPhone81)
-		{
-			this.bannerId = this.wp8BannerId;
-			this.interstitialId = this.wp8InterstitialId;
-		}
-		else
-		{
-			this.bannerId = "";
-			this.interstitialId = "";
-		}
-		this.isShowingBannerAd = false;
-		this.isShowingInterstitial = false;
-		this.AdMob["setUp"](this.bannerId, this.interstitialId, overlap, isTesting);
-		var self = this;
-		this.AdMob["onFullScreenAdLoaded"] = function ()
-		{
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnInterstitialReceived, self);
-		};
-		this.AdMob["onInterstitialAdLoaded"] = function ()
-		{
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnInterstitialReceived, self);
-		};
-		this.AdMob["onFullScreenAdShown"] = function ()
-		{
-			self.isShowingInterstitial = true;
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnInterstitialPresented, self);
-		};
-		this.AdMob["onInterstitialAdShown"] = function ()
-		{
-			self.isShowingInterstitial = true;
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnInterstitialPresented, self);
-		};
-		this.AdMob["onFullScreenAdClosed"] = function ()
-		{
-			self.isShowingInterstitial = false;
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnInterstitialDismissed, self);
-		};
-		this.AdMob["onInterstitialAdHidden"] = function ()
-		{
-			self.isShowingInterstitial = false;
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnInterstitialDismissed, self);
-		};
-		this.AdMob["onBannerAdPreloaded"] = function ()
-		{
-			self.runtime.trigger(cr.plugins_.admob.prototype.cnds.OnBannerAdReceived, self);
-		};
-	};
-	function indexToAdSize(i)
-	{
-		switch (i) {
-		case 0:		return "SMART_BANNER";
-		case 1:		return "BANNER";
-		case 2:		return "MEDIUM_RECTANGLE";
-		case 3:		return "FULL_BANNER";
-		case 4:		return "LEADERBOARD";
-		case 5:		return "SKYSCRAPER";
-		}
-		return "SMART_BANNER";
-	};
-	function indexToAdPosition(i)
-	{
-		switch (i) {
-		case 0:		return "top-left";
-		case 1:		return "top-center";
-		case 2:		return "top-right";
-		case 3:		return "left";
-		case 4:		return "center";
-		case 5:		return "right";
-		case 6:		return "bottom-left";
-		case 7:		return "bottom-center";
-		case 8:		return "bottom-right";
-		}
-		return "bottom-center";
-	};
-	function Cnds() {};
-	Cnds.prototype.IsShowingBanner = function()
-	{
-		return this.isShowingBannerAd;
-	};
-	Cnds.prototype.IsShowingInterstitial = function()
-	{
-		return this.isShowingInterstitial;
-	};
-	Cnds.prototype.OnInterstitialReceived = function()
-	{
-		return true;
-	};
-	Cnds.prototype.OnInterstitialPresented = function()
-	{
-		return true;
-	};
-	Cnds.prototype.OnInterstitialDismissed = function()
-	{
-		return true;
-	};
-	Cnds.prototype.OnBannerAdReceived = function()
-	{
-		return true;
-	};
-	pluginProto.cnds = new Cnds();
-	function Acts() {};
-	Acts.prototype.ShowBanner = function (pos_, size_)
-	{
-		if (!isSupported)
-			return;
-		this.AdMob["showBannerAd"](indexToAdPosition(pos_), indexToAdSize(size_));
-		this.isShowingBannerAd = true;
-	};
-	Acts.prototype.AutoShowInterstitial = function ()
-	{
-		if (!isSupported)
-			return;
-		if (this.AdMob["showInterstitialAd"])
-			this.AdMob["showInterstitialAd"]();
-		else if (this.AdMob["showFullScreenAd"])
-			this.AdMob["showFullScreenAd"]();
-	};
-	Acts.prototype.PreloadInterstitial = function ()
-	{
-		if (!isSupported)
-			return;
-		if (this.AdMob["preloadInterstitialAd"])
-			this.AdMob["preloadInterstitialAd"]();
-		else if (this.AdMob["preloadFullScreenAd"])
-			this.AdMob["preloadFullScreenAd"]();
-	};
-	Acts.prototype.ShowInterstitial = function ()
-	{
-		if (!isSupported)
-			return;
-		if (this.AdMob["showInterstitialAd"])
-			this.AdMob["showInterstitialAd"]();
-		else if (this.AdMob["showFullScreenAd"])
-			this.AdMob["showFullScreenAd"]();
-	};
-	Acts.prototype.HideBanner = function ()
-	{
-		if (!isSupported)
-			return;
-		this.AdMob["hideBannerAd"]();
-		this.isShowingBannerAd = false;
-	};
-	Acts.prototype.ReloadInterstitial = function ()
-	{
-		if (!isSupported)
-			return;
-		if (this.AdMob["reloadInterstitialAd"])
-			this.AdMob["reloadInterstitialAd"]();
-		else if (this.AdMob["reloadFullScreenAd"])
-			this.AdMob["reloadFullScreenAd"]();
-	};
-	Acts.prototype.ReloadBanner = function ()
-	{
-		if (!isSupported)
-			return;
-		this.AdMob["reloadBannerAd"]();
-	};
-	Acts.prototype.PreloadBanner = function ()
-	{
-		if (!isSupported)
-			return;
-		this.AdMob["preloadBannerAd"]();
-	};
-	pluginProto.acts = new Acts();
-	function Exps() {};
 	pluginProto.exps = new Exps();
 }());
 ;
@@ -35328,29 +34951,27 @@ cr.behaviors.wrap = function(runtime)
 	};
 }());
 cr.getObjectRefTable = function () { return [
-	cr.plugins_.Dictionary,
-	cr.plugins_.LocalStorage,
-	cr.plugins_.Function,
-	cr.plugins_.Keyboard,
-	cr.plugins_.gamepad,
-	cr.plugins_.Mouse,
-	cr.plugins_.NodeWebkit,
-	cr.plugins_.Sprite,
-	cr.plugins_.PhotonChat,
-	cr.plugins_.rojoPaster,
-	cr.plugins_.progressbar,
-	cr.plugins_.TiledBg,
-	cr.plugins_.Photon,
-	cr.plugins_.Touch,
-	cr.plugins_.TextBox,
-	cr.plugins_.Spritefont2,
-	cr.plugins_.C2WebSocket,
 	cr.plugins_.NinePatch,
 	cr.plugins_.AJAX,
-	cr.plugins_.admob,
 	cr.plugins_.Arr,
 	cr.plugins_.Audio,
 	cr.plugins_.Browser,
+	cr.plugins_.Dictionary,
+	cr.plugins_.NodeWebkit,
+	cr.plugins_.LocalStorage,
+	cr.plugins_.gamepad,
+	cr.plugins_.Keyboard,
+	cr.plugins_.Mouse,
+	cr.plugins_.Function,
+	cr.plugins_.Photon,
+	cr.plugins_.progressbar,
+	cr.plugins_.Touch,
+	cr.plugins_.Sprite,
+	cr.plugins_.rojoPaster,
+	cr.plugins_.Spritefont2,
+	cr.plugins_.TextBox,
+	cr.plugins_.TiledBg,
+	cr.plugins_.PhotonChat,
 	cr.behaviors.bound,
 	cr.behaviors.Pin,
 	cr.behaviors.destroy,
@@ -35409,8 +35030,8 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.Sprite.prototype.acts.SetSize,
 	cr.behaviors.Platform.prototype.acts.SetVectorY,
 	cr.plugins_.Sprite.prototype.acts.SetAnimFrame,
-	cr.system_object.prototype.cnds.IsGroupActive,
 	cr.behaviors.Platform.prototype.acts.SetVectorX,
+	cr.system_object.prototype.cnds.IsGroupActive,
 	cr.plugins_.Sprite.prototype.acts.SetVisible,
 	cr.plugins_.Sprite.prototype.acts.SetMirrored,
 	cr.behaviors.Platform.prototype.acts.SimulateControl,
@@ -35455,6 +35076,8 @@ cr.getObjectRefTable = function () { return [
 	cr.system_object.prototype.exps.choose,
 	cr.plugins_.Sprite.prototype.cnds.OnAnimFinished,
 	cr.plugins_.Sprite.prototype.acts.MoveToTop,
+	cr.system_object.prototype.cnds.OnLayoutStart,
+	cr.system_object.prototype.acts.GoToLayout,
 	cr.system_object.prototype.acts.SetVar,
 	cr.plugins_.Browser.prototype.acts.Focus,
 	cr.behaviors.Platform.prototype.acts.SetAcceleration,
@@ -35489,7 +35112,6 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.Audio.prototype.acts.StopAll,
 	cr.plugins_.Photon.prototype.acts.setMyRoomIsOpen,
 	cr.plugins_.Photon.prototype.acts.disconnect,
-	cr.system_object.prototype.acts.GoToLayout,
 	cr.system_object.prototype.acts.ResetGlobals,
 	cr.system_object.prototype.acts.RestartLayout,
 	cr.plugins_.Mouse.prototype.cnds.OnObjectClicked,
@@ -35510,7 +35132,9 @@ cr.getObjectRefTable = function () { return [
 	cr.behaviors.Platform.prototype.acts.FallThrough,
 	cr.system_object.prototype.cnds.PickRandom,
 	cr.system_object.prototype.acts.SubVar,
-	cr.system_object.prototype.cnds.OnLayoutStart,
+	cr.plugins_.Mouse.prototype.cnds.IsOverObject,
+	cr.plugins_.Mouse.prototype.exps.X,
+	cr.plugins_.Mouse.prototype.exps.Y,
 	cr.system_object.prototype.acts.ScrollToObject,
 	cr.plugins_.Audio.prototype.acts.SetVolume,
 	cr.system_object.prototype.acts.Scroll,
@@ -35529,11 +35153,8 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.Sprite.prototype.acts.MoveToLayer,
 	cr.plugins_.Touch.prototype.exps.X,
 	cr.plugins_.Touch.prototype.exps.Y,
-	cr.plugins_.Mouse.prototype.exps.X,
-	cr.plugins_.Mouse.prototype.cnds.IsOverObject,
 	cr.system_object.prototype.acts.SetLayoutScale,
 	cr.plugins_.Sprite.prototype.cnds.IsOnScreen,
-	cr.plugins_.Mouse.prototype.exps.Y,
 	cr.plugins_.gamepad.prototype.cnds.HasGamepads,
 	cr.plugins_.Sprite.prototype.exps.Count,
 	cr.system_object.prototype.cnds.PickNth,
@@ -35561,9 +35182,12 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.TextBox.prototype.acts.SetBlur,
 	cr.plugins_.TextBox.prototype.acts.SetFocus,
 	cr.system_object.prototype.exps.windowwidth,
+	cr.plugins_.Photon.prototype.cnds.isConnectedToMaster,
 	cr.plugins_.Photon.prototype.cnds.isConnectedToNameServer,
+	cr.plugins_.Photon.prototype.cnds.isJoinedToRoom,
 	cr.plugins_.Photon.prototype.acts.connect,
 	cr.plugins_.PhotonChat.prototype.acts.connect,
+	cr.plugins_.TextBox.prototype.acts.SetVisible,
 	cr.plugins_.AJAX.prototype.acts.Request,
 	cr.plugins_.TextBox.prototype.acts.SetReadOnly,
 	cr.system_object.prototype.exps.projectversion,
@@ -35575,7 +35199,6 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.Photon.prototype.exps.AppStatsMasterPeerCount,
 	cr.plugins_.Function.prototype.exps.Param,
 	cr.plugins_.Photon.prototype.cnds.onError,
-	cr.plugins_.Photon.prototype.cnds.isJoinedToRoom,
 	cr.plugins_.Photon.prototype.cnds.onJoinedLobby,
 	cr.plugins_.Photon.prototype.acts.joinRandomRoom,
 	cr.plugins_.Photon.prototype.cnds.onJoinRandomRoomNoMatchFound,
