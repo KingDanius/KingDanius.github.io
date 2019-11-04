@@ -1,5 +1,5 @@
 ﻿{
-	"version": 1572883827,
+	"version": 1572886146,
 	"fileList": [
 		"data.js",
 		"c2runtime.js",
@@ -531,6 +531,8 @@
 		"images/difficultyselect-sheet0.png",
 		"images/deathzone-sheet0.png",
 		"images/lopschriftzug-sheet0.png",
+		"images/menuquit-sheet0.png",
+		"images/menuquit-sheet1.png",
 		"media/charge1.m4a",
 		"media/charge1.ogg",
 		"media/explosion1.m4a",
