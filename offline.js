@@ -1,5 +1,5 @@
 ﻿{
-	"version": 1572886146,
+	"version": 1572893405,
 	"fileList": [
 		"data.js",
 		"c2runtime.js",
@@ -306,6 +306,9 @@
 		"images/poppyattack2p1classic-sheet0.png",
 		"images/puppetstringp1classic-sheet0.png",
 		"images/puppetskillstringp1classic-sheet0.png",
+		"images/deathanim-sheet0.png",
+		"images/deathanim-sheet1.png",
+		"images/deathanim-sheet2.png",
 		"images/icon1-sheet0.png",
 		"images/icon1-sheet1.png",
 		"images/icon2-sheet0.png",
